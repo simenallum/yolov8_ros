@@ -8,9 +8,10 @@
     <node
         name="human_search_yolo_node"
         pkg="yolov8_ros"
-        type="yolov8_ros.py">
+        type="yolov8_ros.py"
+        output="screen">
         
-        <param name="config_file" value="dnncv_config.yaml" />
+        <param name="config_file" value="YOLO8_config.yaml" />
         <param name="yolo_model_path" value="$(arg yolo_model_path)" />
         <param name="topics/output/bounding_boxes" value="$(arg topic_bb)" />
 

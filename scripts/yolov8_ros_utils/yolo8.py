@@ -11,18 +11,18 @@ class YOLOv8:
 				self.iou_threshold = iou_thres
 
 				# Initialize model
-				self.initialize_model(path)
+				self._initialize_model(path)
 
 		def __call__(self, image):
-				return self.detect_objects(image)
+				return self._detect_objects(image)
 
-		def initialize_model(self, path):
+		def _initialize_model(self, path):
 			self.model = ultralytics.YOLO(path)  # load a custom trained
 			self.model.fuse()
 
-		def detect_objects(self, image):
+		def _detect_objects(self, image):
 
-			prediction = self.inference(image)
+			prediction = self._inference(image)
 
 			# Extract the predictions result
 			result = prediction[0].cpu().numpy()
@@ -33,8 +33,11 @@ class YOLOv8:
 
 			return boxes, confidence, classes
 
-		def inference(self, image):
+		def _inference(self, image):
 			return self.model.predict(image, verbose=True)
+
+		def get_class_names(self):
+			return self.model.names
 
 		def draw_detecions(self, image, boxes, confidence, classes):
 			return draw_detecions(image, boxes, confidence, classes)

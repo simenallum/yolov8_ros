@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 import sys
 
-import yolov8_ros_utils.yolo8
+from yolov8_ros_utils.yolo8 import YOLOv8
 
 class YOLOv8Detector:
 	
@@ -15,6 +15,9 @@ class YOLOv8Detector:
 				rospy.init_node("YOLOv8Detector", anonymous=False)
 
 				script_dir = os.path.dirname(os.path.realpath(__file__))
+
+				if config_file is None:
+						config_file = rospy.get_param("~config_file")
 
 				try:
 						with open(f"{script_dir}/../config/{config_file}") as f:
@@ -30,7 +33,7 @@ class YOLOv8Detector:
 
 			def initalize_parameters(self):
 
-				self.model_path = rospy.get_param("yolo_model_path")
+				self.model_path = rospy.get_param("~yolo_model_path")
 
 			def setup_subscribers(self):
 				pass
@@ -40,4 +43,24 @@ class YOLOv8Detector:
 				pass
 
 			def initalize_detector(self):
-				self.detector = yolov8_ros_utils.yolo8(self.model_path)
+				self.detector = YOLOv8(self.model_path)
+
+			def _shutdown():
+				rospy.loginfo("Shutting down yolov8_ros node")
+
+			def start(self):
+				rospy.loginfo("Starting yolov8_ros node")
+				rospy.loginfo(f"Model class IDs and names: {self.detector.get_class_names()}")
+
+				rospy.on_shutdown(self._shutdown)
+
+				while not rospy.is_shutdown():
+
+					rospy.spin()
+
+def main():
+		Detector = YOLOv8Detector()
+		Detector.start()
+
+if __name__ == "__main__":
+		main()
