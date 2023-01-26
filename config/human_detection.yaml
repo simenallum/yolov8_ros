@@ -1,0 +1,12 @@
+topics:
+  input:
+    image: "/anafi/image"
+  output:
+    boxes: "/yolo/search/boxes"
+    detectionImage: "/yolo/search/detectionImage"
+
+settings:
+  publish_detection_images: False
+
+model:
+  path: "/home/simenallum/catkin_ws/src/yolov8_ros/yolo_network_config/models/large_small_objects.pt"

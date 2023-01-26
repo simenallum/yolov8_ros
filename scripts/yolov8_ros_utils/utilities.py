@@ -1,12 +1,8 @@
 import numpy as np
 import cv2
 
-class_names = ['boat', 'bouy', 'human', 'kayak', 'sailboat', 'wind/sup-board']
-class_names = ['bouy', 'human']
 
-# Create a list of colors for each class where each color is a tuple of 3 integer values
-rng = np.random.default_rng(3)
-colors = rng.uniform(0, 255, size=(len(class_names), 3))
+
 
 
 def nms(boxes, scores, iou_threshold):
@@ -62,9 +58,13 @@ def xywh2xyxy(x):
     return y
 
 
-def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
+def draw_detections(image, boxes, scores, class_ids, class_names, mask_alpha=0.3):
     mask_img = image.copy()
     det_img = image.copy()
+
+    # Create a list of colors for each class where each color is a tuple of 3 integer values
+    rng = np.random.default_rng(3)
+    colors = rng.uniform(0, 255, size=(len(class_names), 3))
 
     img_height, img_width = image.shape[:2]
     size = min([img_height, img_width]) * 0.0006

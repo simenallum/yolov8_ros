@@ -2,7 +2,7 @@ import ultralytics
 import pandas as pd
 import cv2
 
-from yolov8_ros_utils.utilities import draw_detections
+from yolov8_ros_utils.utilities import draw_detections as DD
 
 class YOLOv8:
 
@@ -13,16 +13,19 @@ class YOLOv8:
 				# Initialize model
 				self._initialize_model(path)
 
-		def __call__(self, image):
-				return self._detect_objects(image)
+		def __call__(self, image, make_detection_image=False):
+				return self._detect_objects(image, make_detection_image)
 
 		def _initialize_model(self, path):
 			self.model = ultralytics.YOLO(path)  # load a custom trained
 			self.model.fuse()
 
-		def _detect_objects(self, image):
+			self.class_labels = self.get_class_labels()
 
-			prediction = self._inference(image)
+		def _detect_objects(self, image, make_detection_image=False):
+			img = image.copy()
+
+			prediction = self._inference(img)
 
 			# Extract the predictions result
 			result = prediction[0].cpu().numpy()
@@ -31,16 +34,25 @@ class YOLOv8:
 			confidence = result.boxes.conf   # confidence score, (N, 1)
 			classes = result.boxes.cls.astype(int)    # cls, (N, 1)
 
-			return boxes, confidence, classes
+			if make_detection_image:
+				detection_image = self.draw_detecions(img, boxes, confidence, classes)
+				return boxes, confidence, classes, detection_image
+
+			return boxes, confidence, classes, img
 
 		def _inference(self, image):
 			return self.model.predict(image, verbose=True)
 
-		def get_class_names(self):
-			return self.model.names
+		def get_class_labels(self):
+			id_label_dict = self.model.names
+			values_list = []
+			for key in id_label_dict:
+				values_list.append(id_label_dict[key])
+
+			return values_list
 
 		def draw_detecions(self, image, boxes, confidence, classes):
-			return draw_detecions(image, boxes, confidence, classes)
+			return DD(image, boxes, confidence, classes, self.class_labels)
 		
 
 if __name__ == '__main__':
