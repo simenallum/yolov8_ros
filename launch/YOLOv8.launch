@@ -12,14 +12,4 @@
 
     </node>
 
-    <node
-        name="platform_search_yolo_node"
-        pkg="yolov8_ros"
-        type="yolov8_node.py"
-        output="screen">
-        
-        <param name="config_file" value="platform_detection.yaml" />
-
-    </node>
-
 </launch>

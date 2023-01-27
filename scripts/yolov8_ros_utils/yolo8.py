@@ -7,9 +7,10 @@ from yolov8_ros_utils.utilities import nms as non_maxima_suppression
 
 class YOLOv8:
 
-		def __init__(self, path, conf_thres=0.7, iou_thres=0.5):
+		def __init__(self, path, conf_thres=0.7, iou_thres=0.5, print_terminal_output=False):
 				self.conf_threshold = conf_thres
 				self.iou_threshold = iou_thres
+				self.print_terminal_output = print_terminal_output
 
 				# Initialize model
 				self._initialize_model(path)
@@ -61,6 +62,9 @@ class YOLOv8:
 
 			# Otherwise, return original image along with boxes, confidence, and classes
 			return boxes, confidence, classes, img
+
+		def _inference(self, image):
+			return self.model.predict(image, verbose=self.print_terminal_output)
 
 
 		def _process_output(self, input_boxes, input_confidence, input_classes):

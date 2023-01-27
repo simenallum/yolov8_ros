@@ -9,6 +9,7 @@ from cv_bridge import CvBridge
 
 from yolov8_ros_utils.yolo8 import YOLOv8
 from yolov8_ros.msg import BoundingBox, BoundingBoxes
+from std_srvs.srv import SetBool, SetBoolResponse
 import sensor_msgs.msg
 
 class YOLOv8Detector:
@@ -32,6 +33,7 @@ class YOLOv8Detector:
 		self._initalize_parameters()
 		self._setup_publishers()
 		self._setup_subscribers()
+		self._initalize_services()
 		self._initalize_detector()
 
 	def _initalize_parameters(self):
@@ -40,9 +42,15 @@ class YOLOv8Detector:
 		self.publish_annotated_image = self.config["settings"]["publish_detection_images"]
 		self.conf_threshold = self.config["model"]["confidence_threshold"]
 		self.iou_threshold = self.config["model"]["iou_threshold"]
+		self.print_terminal_output = self.config["settings"]["print_terminal_output"]
+
+		# Control signal parameters
+		self.process_image = False
+		self.process_next_image = False
+		self.image_counter = 0
 
 	def _initalize_detector(self):
-			self.detector = YOLOv8(self.model_path, self.conf_threshold, self.iou_threshold)
+			self.detector = YOLOv8(self.model_path, self.conf_threshold, self.iou_threshold, self.print_terminal_output)
 			self.class_labels = self.detector.get_class_labels()
 
 	def _setup_subscribers(self):
@@ -50,6 +58,19 @@ class YOLOv8Detector:
 			self.config["topics"]["input"]["image"], 
 			sensor_msgs.msg.Image, 
 			self._new_image_cb
+		)
+
+	def _initalize_services(self):
+		self.srv_process_image = rospy.Service(
+			self.config["control"]["service"]["process_image"],
+			SetBool, 
+			self._handle_process_image
+		)
+
+		self.srv_process_next_image = rospy.Service(
+			self.config["control"]["service"]["process_next_image"],
+			SetBool, 
+			self._handle_process_next_image
 		)
 
 
@@ -68,17 +89,48 @@ class YOLOv8Detector:
 		)
 
 	
-
 	def _new_image_cb(self, image):
-		image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")
+		if self.process_image or self.process_next_image:
+			image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
-		boxes, confidence, classes, annotated_image =  self.detector(image_msg, self.publish_annotated_image)
+			boxes, confidence, classes, annotated_image =  self.detector(image_msg, self.publish_annotated_image)
 
-		msg = self._prepare_boundingbox_msg(boxes, confidence, classes)
-		self._publish_detected_boundingboxes(msg)
+			msg = self._prepare_boundingbox_msg(boxes, confidence, classes)
+			self._publish_detected_boundingboxes(msg)
 
-		if self.publish_annotated_image:
-			self._publish_detected_image(annotated_image)
+			if self.publish_annotated_image:
+				self._publish_detected_image(annotated_image)
+
+			self.process_next_image = False
+			self.image_counter = 0
+
+	def _handle_process_image(self, req):
+		if req.data:
+			self.process_image = True
+			res = SetBoolResponse()
+			res.success = True
+			res.message = "Started processing data"
+			return res 
+		else:
+			self.process_image = False
+			res = SetBoolResponse()
+			res.success = True
+			res.message = "Stopped processing data"
+			return res
+
+	def _handle_process_next_image(self, req):
+		if self.image_counter == 0:
+			self.process_next_image = True
+			self.image_counter += 1
+			res = SetBoolResponse()
+			res.success = True
+			res.message = "Started processing next image"
+			return res
+		else:
+			res = SetBoolResponse()
+			res.success = False
+			res.message = "Already processing next image"
+			return res
 
 	def _prepare_boundingbox_msg(self, boxes, confidence, classes):
 		boundingBoxes = BoundingBoxes()
