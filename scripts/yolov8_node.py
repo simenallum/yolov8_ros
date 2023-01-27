@@ -29,18 +29,23 @@ class YOLOv8Detector:
 				rospy.logerr(f"Failed to load config: {e}")
 				sys.exit()
 
-		self.initalize_parameters()
-		self.setup_publishers()
-		self.setup_subscribers()
-		self.initalize_detector()
+		self._initalize_parameters()
+		self._setup_publishers()
+		self._setup_subscribers()
+		self._initalize_detector()
 
-	def initalize_parameters(self):
+	def _initalize_parameters(self):
 		self.bridge = CvBridge()
 		self.model_path = self.config["model"]["path"]
 		self.publish_annotated_image = self.config["settings"]["publish_detection_images"]
+		self.conf_threshold = self.config["model"]["confidence_threshold"]
+		self.iou_threshold = self.config["model"]["iou_threshold"]
 
+	def _initalize_detector(self):
+			self.detector = YOLOv8(self.model_path, self.conf_threshold, self.iou_threshold)
+			self.class_labels = self.detector.get_class_labels()
 
-	def setup_subscribers(self):
+	def _setup_subscribers(self):
 		rospy.Subscriber(
 			self.config["topics"]["input"]["image"], 
 			sensor_msgs.msg.Image, 
@@ -48,7 +53,7 @@ class YOLOv8Detector:
 		)
 
 
-	def setup_publishers(self):
+	def _setup_publishers(self):
 		if self.publish_annotated_image:
 			self.detection_image_pub = rospy.Publisher(
 				self.config["topics"]["output"]["detectionImage"], 
@@ -62,9 +67,7 @@ class YOLOv8Detector:
 			queue_size=10
 		)
 
-	def initalize_detector(self):
-		self.detector = YOLOv8(self.model_path)
-		self.class_labels = self.detector.get_class_labels()
+	
 
 	def _new_image_cb(self, image):
 		image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")

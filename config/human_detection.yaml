@@ -10,3 +10,5 @@ settings:
 
 model:
   path: "/home/simenallum/catkin_ws/src/yolov8_ros/yolo_network_config/models/large_small_objects.pt"
+  confidence_threshold: 0.7
+  iou_threshold: 0.5
