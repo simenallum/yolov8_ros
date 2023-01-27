@@ -2,17 +2,23 @@
 
 <launch>
 
-    <arg name="yolo_model_path" default="$(find yolov8_ros)/yolo_network_config/models/humans_and_bouys.pt"/>
-    <arg name="topic_bb" default="YOLO/search/boundingboxes"/>
-
     <node
         name="human_search_yolo_node"
         pkg="yolov8_ros"
-        type="yolov8_ros.py">
+        type="yolov8_node.py"
+        output="screen">
         
-        <param name="config_file" value="dnncv_config.yaml" />
-        <param name="yolo_model_path" value="$(arg yolo_model_path)" />
-        <param name="topics/output/bounding_boxes" value="$(arg topic_bb)" />
+        <param name="config_file" value="human_detection.yaml" />
+
+    </node>
+
+    <node
+        name="platform_search_yolo_node"
+        pkg="yolov8_ros"
+        type="yolov8_node.py"
+        output="screen">
+        
+        <param name="config_file" value="platform_detection.yaml" />
 
     </node>
 
