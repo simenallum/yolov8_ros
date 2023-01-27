@@ -7,8 +7,14 @@ topics:
 
 settings:
   publish_detection_images: False
+    print_terminal_output: False
 
 model:
   path: "/home/simenallum/catkin_ws/src/yolov8_ros/yolo_network_config/models/humans_and_bouys.pt"
   confidence_threshold: 0.7
   iou_threshold: 0.5
+  
+control:
+  service:
+    process_image: "platform_process_image"
+    process_next_image: "platform_process_next_image"
