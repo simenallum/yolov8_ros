@@ -7,6 +7,8 @@ import yaml
 import sys
 from cv_bridge import CvBridge
 
+import time
+
 from yolov8_ros_utils.yolo8 import YOLOv8
 from yolov8_ros.msg import BoundingBox, BoundingBoxes
 from std_srvs.srv import SetBool, SetBoolResponse
@@ -90,12 +92,15 @@ class YOLOv8Detector:
 
 	
 	def _new_image_cb(self, image):
+		start = time.time()
+
 		if self.process_image or self.process_next_image:
 			image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
 			boxes, confidence, classes, annotated_image =  self.detector(image_msg, self.publish_annotated_image)
+			
 
-			msg = self._prepare_boundingbox_msg(boxes, confidence, classes)
+			msg = self._prepare_boundingbox_msg(boxes, confidence, classes, image_msg)
 			self._publish_detected_boundingboxes(msg)
 
 			if self.publish_annotated_image:
@@ -103,6 +108,9 @@ class YOLOv8Detector:
 
 			self.process_next_image = False
 			self.image_counter = 0
+
+		end = time.time()
+		print("Time taken: {:.2f} ms".format((end - start) * 1000))
 
 	def _handle_process_image(self, req):
 		if req.data:
@@ -132,7 +140,7 @@ class YOLOv8Detector:
 			res.message = "Already processing next image"
 			return res
 
-	def _prepare_boundingbox_msg(self, boxes, confidence, classes):
+	def _prepare_boundingbox_msg(self, boxes, confidence, classes, frame):
 		boundingBoxes = BoundingBoxes()
 		boundingBoxes.header.stamp = rospy.Time.now()
 
@@ -147,6 +155,8 @@ class YOLOv8Detector:
 			boundingBox.Class = self.class_labels[classes[i]]
 
 			boundingBoxes.bounding_boxes.append(boundingBox)
+
+		boundingBoxes.frame = self.bridge.cv2_to_imgmsg(frame, "bgr8")
 
 		return boundingBoxes
 
