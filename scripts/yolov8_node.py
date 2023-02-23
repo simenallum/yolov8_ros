@@ -55,6 +55,8 @@ class YOLOv8Detector:
 			self.detector = YOLOv8(self.model_path, self.conf_threshold, self.iou_threshold, self.print_terminal_output)
 			self.class_labels = self.detector.get_class_labels()
 
+			_ =  self.detector(np.zeros((1980, 1080, 3))) # Warmup pass through network
+
 	def _setup_subscribers(self):
 		rospy.Subscriber(
 			self.config["topics"]["input"]["image"], 
@@ -92,8 +94,6 @@ class YOLOv8Detector:
 
 	
 	def _new_image_cb(self, image):
-		start = time.time()
-
 		if self.process_image or self.process_next_image:
 			image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
@@ -108,9 +108,6 @@ class YOLOv8Detector:
 
 			self.process_next_image = False
 			self.image_counter = 0
-
-		end = time.time()
-		print("Time taken: {:.2f} ms".format((end - start) * 1000))
 
 	def _handle_process_image(self, req):
 		if req.data:
