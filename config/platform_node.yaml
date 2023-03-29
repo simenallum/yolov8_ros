@@ -1,0 +1,19 @@
+topics:
+  input:
+    image: "/anafi/image"
+  output:
+    boxes: "/yolo/platform/boxes"
+    detectionImage: "/yolo/platform/detectionImage"
+
+settings:
+  publish_detection_images: True
+  print_terminal_output: False
+
+model:
+  path: "/home/msccomputer/catkin_ws/src/yolov8_ros/yolo_network_config/models/platform_SGD_full.pt"
+  confidence_threshold: 0.8
+  iou_threshold: 0.01
+  
+control:
+  service:
+    process_image: "activate_DNN_tracking"

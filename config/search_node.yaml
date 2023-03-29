@@ -1,0 +1,21 @@
+topics:
+  input:
+    image: "/anafi/image"
+  output:
+    boxes: "/yolo/search/boxes"
+    detectionImage: "/yolo/search/detectionImage"
+
+settings:
+  publish_detection_images: True
+  print_terminal_output: False
+
+model:
+  path: "/home/msccomputer/catkin_ws/src/yolov8_ros/yolo_network_config/models/search_nano_model.pt"
+  confidence_threshold: 0.1
+  iou_threshold: 0.5
+
+control:
+  service:
+    process_image: "search_process_image"
+    process_next_image: "search_process_next_image"
+  

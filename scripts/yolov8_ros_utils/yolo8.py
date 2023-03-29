@@ -90,8 +90,8 @@ class YOLOv8:
 
 		def get_class_labels(self):
 			"""
-        	Returns a list of class labels for the given model.
-        	"""
+			Returns a list of class labels for the given model.
+			"""
 
 			id_label_dict = self.model.names
 			values_list = []
