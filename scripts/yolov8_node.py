@@ -48,15 +48,18 @@ class YOLOv8Detector:
 
 		# Control signal parameters
 		self.process_image = False
-		self.process_next_image = False
-		self.image_counter = 0
+		self.model_initialized = False
 
 	def _initalize_detector(self):
+			rospy.logwarn("Wait for model to be initialized!")
 			self.detector = YOLOv8(self.model_path, self.conf_threshold, self.iou_threshold, self.print_terminal_output)
 			self.class_labels = self.detector.get_class_labels()
 
 			_ =  self.detector(np.zeros((1980, 1080, 3))) # Warmup pass through network
+			rospy.logwarn("Model initialized!")
+			self.model_initialized = True
 
+			
 	def _setup_subscribers(self):
 		rospy.Subscriber(
 			self.config["topics"]["input"]["image"], 
@@ -69,12 +72,6 @@ class YOLOv8Detector:
 			self.config["control"]["service"]["process_image"],
 			SetBool, 
 			self._handle_process_image
-		)
-
-		self.srv_process_next_image = rospy.Service(
-			self.config["control"]["service"]["process_next_image"],
-			SetBool, 
-			self._handle_process_next_image
 		)
 
 
@@ -94,20 +91,16 @@ class YOLOv8Detector:
 
 	
 	def _new_image_cb(self, image):
-		if self.process_image or self.process_next_image:
+		if self.process_image and self.model_initialized:
 			image_msg = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
 			boxes, confidence, classes, annotated_image =  self.detector(image_msg, self.publish_annotated_image)
-			
 
 			msg = self._prepare_boundingbox_msg(boxes, confidence, classes, image_msg)
 			self._publish_detected_boundingboxes(msg)
 
 			if self.publish_annotated_image:
 				self._publish_detected_image(annotated_image)
-
-			self.process_next_image = False
-			self.image_counter = 0
 
 	def _handle_process_image(self, req):
 		if req.data:
@@ -123,19 +116,6 @@ class YOLOv8Detector:
 			res.message = "Stopped processing data"
 			return res
 
-	def _handle_process_next_image(self, req):
-		if self.image_counter == 0:
-			self.process_next_image = True
-			self.image_counter += 1
-			res = SetBoolResponse()
-			res.success = True
-			res.message = "Started processing next image"
-			return res
-		else:
-			res = SetBoolResponse()
-			res.success = False
-			res.message = "Already processing next image"
-			return res
 
 	def _prepare_boundingbox_msg(self, boxes, confidence, classes, frame):
 		boundingBoxes = BoundingBoxes()
