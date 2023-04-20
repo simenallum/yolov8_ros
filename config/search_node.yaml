@@ -17,5 +17,4 @@ model:
 control:
   service:
     process_image: "search_process_image"
-    process_next_image: "search_process_next_image"
   
