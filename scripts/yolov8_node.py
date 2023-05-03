@@ -45,6 +45,7 @@ class YOLOv8Detector:
 		self.conf_threshold = self.config["model"]["confidence_threshold"]
 		self.iou_threshold = self.config["model"]["iou_threshold"]
 		self.print_terminal_output = self.config["settings"]["print_terminal_output"]
+		self.include_image_in_bb_msg = self.config["settings"]["include_image_in_bb_msg"]
 
 		# Control signal parameters
 		self.process_image = False
@@ -133,7 +134,8 @@ class YOLOv8Detector:
 
 			boundingBoxes.bounding_boxes.append(boundingBox)
 
-		boundingBoxes.frame = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+		if self.include_image_in_bb_msg:
+			boundingBoxes.frame = self.bridge.cv2_to_imgmsg(frame, "bgr8")
 
 		return boundingBoxes
 
