@@ -1,18 +1,18 @@
 topics:
   input:
-    image: "/anafi/image/downsampled"
+    image: "/anafi/image"
   output:
     boxes: "/yolo/platform/boxes"
     detectionImage: "/yolo/platform/detectionImage"
 
 settings:
-  publish_detection_images: False
+  publish_detection_images: True
   include_image_in_bb_msg: False
   print_terminal_output: False
 
 model:
   path: "/home/msccomputer/catkin_ws/src/yolov8_ros/yolo_network_config/models/platform_SGD_full.pt"
-  confidence_threshold: 0.7
+  confidence_threshold: 0.95
   iou_threshold: 0.01 # Return most dominant BB. Drop all BBs with overlap of 1% with the most dominant BB.
   
 control:
